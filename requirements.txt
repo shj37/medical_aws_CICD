@@ -8,3 +8,5 @@ langchain-pinecone
 langchain_community
 langchain_openai
 langchain_experimental
+-e .
+pinecone-client>=6.0.0

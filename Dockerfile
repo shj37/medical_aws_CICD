@@ -4,6 +4,6 @@ WORKDIR /app
 
 COPY . /app
 
-RUN pip install -r requirements.txt
+RUN pip install -r requirements.txt && pip uninstall -y pinecone-plugin-inference
 
 CMD ["python3", "app.py"]

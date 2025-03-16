@@ -4,6 +4,7 @@ flask
 pypdf
 python-dotenv
 pinecone[grpc]==5.4.2
+pinecone-plugin-inference==0.0.0
 langchain-pinecone
 langchain_community
 langchain_openai

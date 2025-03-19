@@ -1,4 +1,3 @@
-# Import statements
 import streamlit as st
 from src.helper import download_hugging_face_embeddings
 from langchain_pinecone import PineconeVectorStore

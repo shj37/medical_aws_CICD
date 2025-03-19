@@ -8,4 +8,4 @@ RUN pip install -r requirements.txt --no-cache-dir
 
 RUN pip uninstall -y pinecone-plugin-inference --no-cache-dir
 
-CMD ["python3", "app.py"]
+CMD ["streamlit", "run", "app.py"]

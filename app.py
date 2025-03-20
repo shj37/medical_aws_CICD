@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 from src.prompt import *
 import os
 
+
 # Load environment variables
 load_dotenv()
 PINECONE_API_KEY = os.environ.get('PINECONE_API_KEY')

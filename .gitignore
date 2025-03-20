@@ -10,6 +10,7 @@ __pycache__/
 .Python
 build/
 reference/
+AlevelChatbot/
 develop-eggs/
 dist/
 downloads/

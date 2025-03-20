@@ -13,50 +13,50 @@ import os
 load_dotenv()
 PINECONE_API_KEY = os.environ.get('PINECONE_API_KEY')
 OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
-PASSWORD = os.environ.get('PASSWORD')  # Load the preset password
+PASSWORD = os.environ.get('PASSWORD')
 os.environ["PINECONE_API_KEY"] = PINECONE_API_KEY
 os.environ["OPENAI_API_KEY"] = OPENAI_API_KEY
-
-# Initialize embeddings and vector store with caching
-@st.cache_resource
-def load_embeddings():
-    return download_hugging_face_embeddings()
-
-@st.cache_resource
-def load_vector_store(_embeddings):
-    return PineconeVectorStore.from_existing_index(
-        index_name="medicalbot",
-        embedding=_embeddings
-    )
-
-embeddings = load_embeddings()
-docsearch = load_vector_store(embeddings)
-retriever = docsearch.as_retriever(search_type="similarity", search_kwargs={"k": 3})
-
-# Initialize LLM and chains
-llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.4, max_tokens=500)
-prompt = ChatPromptTemplate.from_messages([
-    ("system", system_prompt),
-    ("human", "{input}"),
-])
-question_answer_chain = create_stuff_documents_chain(llm, prompt)
-rag_chain = create_retrieval_chain(retriever, question_answer_chain)
 
 # Authentication check
 if "authenticated" not in st.session_state:
     st.session_state.authenticated = False
 
 if not st.session_state.authenticated:
-    # Display password prompt
     st.write("Please enter the password to access the chatbot.")
     password_input = st.text_input("Password", type="password")
     if st.button("Submit"):
         if password_input == PASSWORD:
             st.session_state.authenticated = True
-            st.rerun()  # Rerun the app to display the main interface
+            st.rerun()
         else:
             st.error("Incorrect password")
 else:
+    # Move these functions inside the authenticated block
+    @st.cache_resource
+    def load_embeddings():
+        return download_hugging_face_embeddings()
+
+    @st.cache_resource
+    def load_vector_store(_embeddings):
+        return PineconeVectorStore.from_existing_index(
+            index_name="medicalbot",
+            embedding=_embeddings
+        )
+
+    # Load embeddings and vector store only when authenticated
+    embeddings = load_embeddings()
+    docsearch = load_vector_store(embeddings)
+    retriever = docsearch.as_retriever(search_type="similarity", search_kwargs={"k": 3})
+
+    # Initialize LLM and chains
+    llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.4, max_tokens=500)
+    prompt = ChatPromptTemplate.from_messages([
+        ("system", system_prompt),
+        ("human", "{input}"),
+    ])
+    question_answer_chain = create_stuff_documents_chain(llm, prompt)
+    rag_chain = create_retrieval_chain(retriever, question_answer_chain)
+
     # Streamlit chat interface (main app content)
     st.title("Alevel Chatbot")
 
@@ -72,17 +72,14 @@ else:
     # Handle user input
     user_input = st.chat_input("Type your message here...")
     if user_input:
-        # Add user message to session state and display it
         st.session_state.messages.append({"role": "user", "content": user_input})
         with st.chat_message("user"):
             st.markdown(user_input)
         
-        # Process input and get response
         with st.spinner("Thinking..."):
             response = rag_chain.invoke({"input": user_input})
             answer = response["answer"]
         
-        # Add assistant response to session state and display it
         st.session_state.messages.append({"role": "assistant", "content": answer})
         with st.chat_message("assistant"):
             st.markdown(answer)

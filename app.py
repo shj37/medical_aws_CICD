@@ -1,7 +1,7 @@
 import streamlit as st
 from src.helper import download_hugging_face_embeddings
 from langchain_pinecone import PineconeVectorStore
-from langchain_openai import OpenAI
+from langchain_openai import ChatOpenAI  # Updated import
 from langchain.chains import create_retrieval_chain
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain_core.prompts import ChatPromptTemplate
@@ -34,7 +34,7 @@ docsearch = load_vector_store(embeddings)
 retriever = docsearch.as_retriever(search_type="similarity", search_kwargs={"k": 3})
 
 # Initialize LLM and chains
-llm = OpenAI(temperature=0.4, max_tokens=500)
+llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.4, max_tokens=500)  # Updated to ChatOpenAI
 prompt = ChatPromptTemplate.from_messages([
     ("system", system_prompt),
     ("human", "{input}"),

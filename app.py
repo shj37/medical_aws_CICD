@@ -1,5 +1,5 @@
 import streamlit as st
-from src.helper import download_hugging_face_embeddings
+from src.helper import download_hugging_face_embeddings, retrieve_menu
 from langchain_pinecone import PineconeVectorStore
 from langchain_openai import ChatOpenAI
 from langchain.chains import create_retrieval_chain
@@ -17,9 +17,34 @@ PASSWORD = os.environ.get('PASSWORD')
 os.environ["PINECONE_API_KEY"] = PINECONE_API_KEY
 os.environ["OPENAI_API_KEY"] = OPENAI_API_KEY
 
+# Menu configuration data
+MENU_DATA = retrieve_menu()
+
+TEST = False
+SHOW_RETRIEVED_RECORDS = False
+if not TEST:
+    SHOW_RETRIEVED_RECORDS = False
+
+# Custom CSS to reduce spacing between items and adjust layout
+st.markdown("""
+    <style>
+        .sidebar .block-container {
+            padding-top: 1rem;
+            padding-bottom: 1rem;
+        }
+        ul {
+            margin-bottom: 0.3rem; /* Reduce spacing between list items */
+        }
+    </style>
+""", unsafe_allow_html=True)
+
+
 # Authentication check
 if "authenticated" not in st.session_state:
-    st.session_state.authenticated = False
+    if TEST:
+        st.session_state.authenticated = True
+    else:
+        st.session_state.authenticated = False
 
 if not st.session_state.authenticated:
     st.write("Please enter the password to access the chatbot.")
@@ -37,49 +62,109 @@ else:
         return download_hugging_face_embeddings()
 
     @st.cache_resource
-    def load_vector_store(_embeddings):
+    def load_vector_store(_embeddings, namespace=None):
         return PineconeVectorStore.from_existing_index(
-            index_name="medicalbot",
-            embedding=_embeddings
+            index_name="alevelbot",
+            embedding=_embeddings,
+            namespace=namespace
         )
 
-    # Load embeddings and vector store only when authenticated
-    embeddings = load_embeddings()
-    docsearch = load_vector_store(embeddings)
-    retriever = docsearch.as_retriever(search_type="similarity", search_kwargs={"k": 3})
-
     # Initialize LLM and chains
-    llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.4, max_tokens=500)
-    prompt = ChatPromptTemplate.from_messages([
-        ("system", system_prompt),
-        ("human", "{input}"),
-    ])
-    question_answer_chain = create_stuff_documents_chain(llm, prompt)
-    rag_chain = create_retrieval_chain(retriever, question_answer_chain)
+    llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.2, max_tokens=1000)
+    
+    # Sidebar menus
+    st.sidebar.title("Menu")
 
-    # Streamlit chat interface (main app content)
-    st.title("Alevel Chatbot")
+    # Unit selection dropdown in sidebar
+    selected_unit = st.sidebar.selectbox(
+        "Select Unit",
+        options=[item["namespace-key"] for item in MENU_DATA],
+        format_func=lambda key: next((item["name"] for item in MENU_DATA if item["namespace-key"] == key), key),
+        index=None  # Default to the first unit
+    )
+    
+    # Topic selection and display logic
+    selected_topic = None
+    current_unit = next((item for item in MENU_DATA if item["namespace-key"] == selected_unit), None)
+    
+    if current_unit and current_unit.get("topics"):
+        topic_options = ["All Topics"] + [topic["name"] for topic in current_unit["topics"]]
+        selected_topic = st.sidebar.selectbox(
+            "Select Topic",
+            options=topic_options,
+            index=0  # Default to "All Topics"
+        )
 
-    # Initialize session state for messages
-    if "messages" not in st.session_state:
-        st.session_state.messages = []
+        # Display topics and subtopics in sidebar with reduced spacing
+        st.sidebar.write("### Topics Overview")
+        if selected_topic == "All Topics":
+            for topic in current_unit["topics"]:
+                st.sidebar.markdown(f"- **{topic['name']}**", unsafe_allow_html=True)
+        else:
+            selected_topic_data = next((t for t in current_unit["topics"] if t["name"] == selected_topic), None)
+            if selected_topic_data:
+                st.sidebar.markdown(f"**{selected_topic_data['name']}**", unsafe_allow_html=True)
+                for subtopic in selected_topic_data.get("subtopics", []):
+                    st.sidebar.markdown(f"- {subtopic}", unsafe_allow_html=True)
 
-    # Display conversation history
-    for message in st.session_state.messages:
-        with st.chat_message(message["role"]):
-            st.markdown(message["content"])
-
-    # Handle user input
-    user_input = st.chat_input("Type your message here...")
-    if user_input:
-        st.session_state.messages.append({"role": "user", "content": user_input})
-        with st.chat_message("user"):
-            st.markdown(user_input)
+    # Only initialize vector store and chain if unit is selected
+    if selected_unit:
+        # Load embeddings and vector store only when authenticated
+        embeddings = load_embeddings()
+        docsearch = load_vector_store(embeddings, selected_unit)
         
-        with st.spinner("Thinking..."):
-            response = rag_chain.invoke({"input": user_input})
-            answer = response["answer"]
+        # Configure retriever with filters
+        search_kwargs = {"k": 5}
+
+        if selected_topic and selected_topic != "All Topics":
+
+            search_kwargs["filter"] = {"topic": selected_topic.title()}
         
-        st.session_state.messages.append({"role": "assistant", "content": answer})
-        with st.chat_message("assistant"):
-            st.markdown(answer)
+        retriever = docsearch.as_retriever(
+            search_type="similarity", 
+            search_kwargs=search_kwargs)
+
+        prompt = ChatPromptTemplate.from_messages([
+            ("system", system_prompt),
+            ("human", "{input}"),
+        ])
+        question_answer_chain = create_stuff_documents_chain(llm, prompt)
+        rag_chain = create_retrieval_chain(retriever, question_answer_chain)
+        # Streamlit chat interface (main app content)
+        st.title("A-level Chatbot")
+
+        # Initialize session state for messages
+        if "messages" not in st.session_state:
+            st.session_state.messages = []
+
+        # Display conversation history
+        for message in st.session_state.messages:
+            with st.chat_message(message["role"]):
+                st.markdown(message["content"])
+
+        # Handle user input
+        user_input = st.chat_input("Type your message here...")
+        if user_input:
+            st.session_state.messages.append({"role": "user", "content": user_input})
+            with st.chat_message("user"):
+                st.markdown(user_input)
+            
+            with st.spinner("Thinking..."):
+                response = rag_chain.invoke({"input": user_input})
+                answer = response["answer"]
+
+                if SHOW_RETRIEVED_RECORDS:
+                    retrieved_docs = response["context"]  # This might be named differently depending on your chain setup
+
+                    # Display retrieved documents
+                    st.subheader("Retrieved Documents:")
+                    for i, doc in enumerate(retrieved_docs, 1):
+                        st.markdown(f"**Document {i}:**")
+                        st.markdown(doc.page_content)
+                        st.markdown("Metadata:")
+                        st.json(doc.metadata)
+                        st.markdown("---")
+            
+            st.session_state.messages.append({"role": "assistant", "content": answer})
+            with st.chat_message("assistant"):
+                st.markdown(answer)

@@ -3,6 +3,9 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# files
+alevel_bot_notes.md
+
 # C extensions
 *.so
 
@@ -11,6 +14,8 @@ __pycache__/
 build/
 reference/
 AlevelChatbot/
+data/
+research/
 develop-eggs/
 dist/
 downloads/

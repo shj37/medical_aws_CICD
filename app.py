@@ -1,7 +1,7 @@
 import streamlit as st
 from src.helper import download_hugging_face_embeddings
 from langchain_pinecone import PineconeVectorStore
-from langchain_openai import ChatOpenAI  # Updated import
+from langchain_openai import OpenAI
 from langchain.chains import create_retrieval_chain
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain_core.prompts import ChatPromptTemplate
@@ -33,7 +33,7 @@ docsearch = load_vector_store(embeddings)
 retriever = docsearch.as_retriever(search_type="similarity", search_kwargs={"k": 3})
 
 # Initialize LLM and chains
-llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.4, max_tokens=500)  # Updated to ChatOpenAI
+llm = OpenAI(temperature=0.4, max_tokens=500)
 prompt = ChatPromptTemplate.from_messages([
     ("system", system_prompt),
     ("human", "{input}"),
@@ -42,7 +42,7 @@ question_answer_chain = create_stuff_documents_chain(llm, prompt)
 rag_chain = create_retrieval_chain(retriever, question_answer_chain)
 
 # Streamlit chat interface
-st.title("Medical Chatbot")
+st.title("Alevel Chatbot")
 
 # Initialize session state for messages
 if "messages" not in st.session_state:

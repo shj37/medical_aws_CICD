@@ -71,7 +71,9 @@ else:
 
     # Initialize LLM and chains
     llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.2, max_tokens=1000)
-    
+    # Load embeddings and vector store only when authenticated
+    embeddings = load_embeddings()
+
     # Sidebar menus
     st.sidebar.title("Menu")
 
@@ -109,8 +111,6 @@ else:
 
     # Only initialize vector store and chain if unit is selected
     if selected_unit:
-        # Load embeddings and vector store only when authenticated
-        embeddings = load_embeddings()
         docsearch = load_vector_store(embeddings, selected_unit)
         
         # Configure retriever with filters

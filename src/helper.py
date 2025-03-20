@@ -30,6 +30,6 @@ def download_hugging_face_embeddings():
 
 # retrieve selection menu for namespace and metadata
 def retrieve_menu():
-    with open("menu.json".replace("\\", "/"), 'r', encoding='utf-8') as file:
+    with open("menu.json", 'r', encoding='utf-8') as file:
         menu_content = json.load(file)
     return menu_content

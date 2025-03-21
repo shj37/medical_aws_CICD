@@ -72,7 +72,7 @@ else:
         )
 
     # Initialize LLM and chains
-    llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.2, max_tokens=2048)
+    llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.15, max_tokens=2048)
     # Load embeddings and vector store only when authenticated
     embeddings = load_embeddings()
 

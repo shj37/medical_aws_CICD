@@ -72,7 +72,7 @@ else:
         )
 
     # Initialize LLM and chains
-    llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.15, max_tokens=2048)
+    llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.10, max_tokens=2048)
     # Load embeddings and vector store only when authenticated
     embeddings = load_embeddings()
 
@@ -161,8 +161,11 @@ else:
                 response = rag_chain.invoke({"input": user_input})
                 answer = response["answer"]
 
+                retrieved_docs = response["context"]
+
+                number_docs = len(retrieved_docs)
+
                 if SHOW_RETRIEVED_RECORDS:
-                    retrieved_docs = response["context"]  # This might be named differently depending on your chain setup
 
                     if len(retrieved_docs) == 0:
                         st.markdown(f"No Docs Retrieved")
@@ -179,3 +182,4 @@ else:
             st.session_state.messages.append({"role": "assistant", "content": answer})
             with st.chat_message("assistant"):
                 st.markdown(answer)
+                st.markdown(f"Found {number_docs} Found Documents")

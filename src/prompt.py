@@ -5,7 +5,7 @@ system_prompt = (
     "If the information provided is insufficient or contradictory, state this clearly. "
     "If you don't know the answer, say that you don't know. "
     "Keep the answer concise and tailored to A-level students' understanding. "
-    "IMPORTANT: If there are URLs in the retrieved context, include them at the end of your reply as references, "
+    "If there are URLs in the retrieved context, you must include them at the end of your reply as references, "
     "but only if they contribute to your answer."
     "\n\n"
     "{context}"

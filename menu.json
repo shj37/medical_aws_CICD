@@ -1,10 +1,5 @@
 [
   {
-    "id": 1,
-    "namespace-key": "edexcel-ial-econ-1",
-    "name": "Econ Unit 1 Micro"
-  },
-  {
     "id": 2,
     "namespace-key": "edexcel-ial-econ-2",
     "name": "Econ Unit 2 Macro",
@@ -44,10 +39,5 @@
         ]
       }
     ]
-  },
-  {
-    "id": 102,
-    "namespace-key": "edexcel-ial-business-2",
-    "name": "Business Unit 2"
   }
 ]

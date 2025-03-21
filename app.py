@@ -23,7 +23,7 @@ MENU_DATA = retrieve_menu()
 MAX_HISTORY_LENGTH = 3  # Keep the last 3 turns
 
 TEST = False
-SHOW_RETRIEVED_RECORDS = True
+SHOW_RETRIEVED_RECORDS = False
 if not TEST:
     SHOW_RETRIEVED_RECORDS = False
 
@@ -116,14 +116,19 @@ else:
         docsearch = load_vector_store(embeddings, selected_unit)
         
         # Configure retriever with filters
-        search_kwargs = {"k": 5}
+        search_kwargs = {"k": 5, "score_threshold": 0.6}
 
         if selected_topic and selected_topic != "All Topics":
             search_kwargs["filter"] = {"topic": selected_topic.title()}
         
+        # retriever = docsearch.as_retriever(
+        #     search_type="similarity", 
+        #     search_kwargs=search_kwargs)
+
         retriever = docsearch.as_retriever(
-            search_type="similarity", 
+            search_type="similarity_score_threshold", 
             search_kwargs=search_kwargs)
+
 
         prompt = ChatPromptTemplate.from_messages([
             ("system", system_prompt),
@@ -182,4 +187,4 @@ else:
             st.session_state.messages.append({"role": "assistant", "content": answer})
             with st.chat_message("assistant"):
                 st.markdown(answer)
-                st.markdown(f"Found {number_docs} Found Documents")
+                st.markdown(f"Found {number_docs} Relevant Documents")

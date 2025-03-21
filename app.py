@@ -19,9 +19,11 @@ os.environ["OPENAI_API_KEY"] = OPENAI_API_KEY
 
 # Menu configuration data
 MENU_DATA = retrieve_menu()
+# Limit session history
+MAX_HISTORY_LENGTH = 3  # Keep the last 3 turns
 
 TEST = False
-SHOW_RETRIEVED_RECORDS = False
+SHOW_RETRIEVED_RECORDS = True
 if not TEST:
     SHOW_RETRIEVED_RECORDS = False
 
@@ -70,7 +72,7 @@ else:
         )
 
     # Initialize LLM and chains
-    llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.2, max_tokens=1000)
+    llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.2, max_tokens=2048)
     # Load embeddings and vector store only when authenticated
     embeddings = load_embeddings()
 
@@ -117,7 +119,6 @@ else:
         search_kwargs = {"k": 5}
 
         if selected_topic and selected_topic != "All Topics":
-
             search_kwargs["filter"] = {"topic": selected_topic.title()}
         
         retriever = docsearch.as_retriever(
@@ -133,6 +134,8 @@ else:
         # Streamlit chat interface (main app content)
         st.title("A-level Chatbot")
 
+
+
         # Initialize session state for messages
         if "messages" not in st.session_state:
             st.session_state.messages = []
@@ -146,6 +149,11 @@ else:
         user_input = st.chat_input("Type your message here...")
         if user_input:
             st.session_state.messages.append({"role": "user", "content": user_input})
+
+            # Trim history
+            if len(st.session_state.messages) > MAX_HISTORY_LENGTH * 2:
+                st.session_state.messages = st.session_state.messages[-MAX_HISTORY_LENGTH * 2:]
+
             with st.chat_message("user"):
                 st.markdown(user_input)
             
@@ -155,6 +163,9 @@ else:
 
                 if SHOW_RETRIEVED_RECORDS:
                     retrieved_docs = response["context"]  # This might be named differently depending on your chain setup
+
+                    if len(retrieved_docs) == 0:
+                        st.markdown(f"No Docs Retrieved")
 
                     # Display retrieved documents
                     st.subheader("Retrieved Documents:")

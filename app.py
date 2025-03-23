@@ -17,15 +17,18 @@ PASSWORD = os.environ.get('PASSWORD')
 os.environ["PINECONE_API_KEY"] = PINECONE_API_KEY
 os.environ["OPENAI_API_KEY"] = OPENAI_API_KEY
 
-# Menu configuration data
-MENU_DATA = retrieve_menu()
 # Limit session history
 MAX_HISTORY_LENGTH = 3  # Keep the last 3 turns
+# Menu configuration data
+MENU_DATA = retrieve_menu()
 
 TEST = False
 SHOW_RETRIEVED_RECORDS = False
 if not TEST:
     SHOW_RETRIEVED_RECORDS = False
+else:
+    # Menu configuration data
+    MENU_DATA = retrieve_menu(menu="menu_test.json")
 
 # Custom CSS to reduce spacing between items and adjust layout
 st.markdown("""
@@ -72,7 +75,7 @@ else:
         )
 
     # Initialize LLM and chains
-    llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.10, max_tokens=2048)
+    llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.1, max_tokens=2048)
     # Load embeddings and vector store only when authenticated
     embeddings = load_embeddings()
 
@@ -186,5 +189,5 @@ else:
             
             st.session_state.messages.append({"role": "assistant", "content": answer})
             with st.chat_message("assistant"):
-                st.markdown(answer)
+                st.markdown(answer, unsafe_allow_html=True)
                 st.markdown(f"Found {number_docs} Relevant Documents")

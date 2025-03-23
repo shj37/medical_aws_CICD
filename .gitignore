@@ -4,7 +4,7 @@ __pycache__/
 *$py.class
 
 # files
-alevel_bot_notes.md
+menu_test.md
 
 # C extensions
 *.so
@@ -13,6 +13,7 @@ alevel_bot_notes.md
 .Python
 build/
 reference/
+documentation/
 AlevelChatbot/
 data/
 research/

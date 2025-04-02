@@ -28,7 +28,7 @@ if not TEST:
     SHOW_RETRIEVED_RECORDS = False
 else:
     # Menu configuration data
-    MENU_DATA = retrieve_menu(menu="menu_test.json")
+    MENU_DATA = retrieve_menu(menu="menu.json")
 
 # Custom CSS to reduce spacing between items and adjust layout
 st.markdown("""
@@ -166,7 +166,7 @@ else:
                 st.markdown(user_input)
             
             with st.spinner("Thinking..."):
-                response = rag_chain.invoke({"input": user_input})
+                response = rag_chain.invoke({"input": user_input + " Include the videos, images and referencing URLs if they exist in retrieved context and are relevant!"})
                 answer = response["answer"]
 
                 retrieved_docs = response["context"]

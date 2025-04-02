@@ -13,6 +13,7 @@ menu_test.md
 .Python
 build/
 reference/
+utils/
 documentation/
 AlevelChatbot/
 data/

@@ -23,12 +23,8 @@ MAX_HISTORY_LENGTH = 3  # Keep the last 3 turns
 MENU_DATA = retrieve_menu()
 
 TEST = False
-SHOW_RETRIEVED_RECORDS = False
-if not TEST:
-    SHOW_RETRIEVED_RECORDS = False
-else:
-    # Menu configuration data
-    MENU_DATA = retrieve_menu(menu="menu.json")
+
+SHOW_RETRIEVED_RECORDS = False if not TEST else True
 
 # Custom CSS to reduce spacing between items and adjust layout
 st.markdown("""
@@ -62,6 +58,12 @@ if not st.session_state.authenticated:
             st.error("Incorrect password")
 else:
     # Move these functions inside the authenticated block
+    @st.cache_data
+    def load_menu():
+        return retrieve_menu()
+
+    MENU_DATA = load_menu()
+
     @st.cache_resource
     def load_embeddings():
         return download_hugging_face_embeddings()

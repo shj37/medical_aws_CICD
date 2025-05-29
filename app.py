@@ -58,7 +58,7 @@ if not st.session_state.authenticated:
             st.error("Incorrect password")
 else:
     # Move these functions inside the authenticated block
-    @st.cache_data
+    @st.cache_data(ttl=3600)
     def load_menu():
         return retrieve_menu()
 

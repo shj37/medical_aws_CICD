@@ -5,6 +5,7 @@ __pycache__/
 
 # files
 menu_test.md
+test_app.py
 
 # C extensions
 *.so
